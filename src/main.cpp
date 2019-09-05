@@ -151,11 +151,11 @@ int main() {
           }
     			if (car_ahead) {
     				// Either shift lanes or slow down
-    				if (!car_to_right && desired_lane < 3) {
+    				if (!car_to_left && desired_lane > 1) {
 
-    					desired_lane++; // Shift right lane
-    				} else if (!car_to_left && desired_lane > 1) {
     					desired_lane--; // Shift left lane
+    				} else if (!car_to_right && desired_lane < 3) {
+    					desired_lane++; // Shift right lane
     				} else {
     					// Slow down ahead
               std::cout << "slow " << '\n';

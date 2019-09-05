@@ -1,6 +1,6 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
 
@@ -43,13 +43,13 @@ Here is the data provided from the Simulator to the C++ Program
 #### Previous path data given to the Planner
 
 //Note: Return the previous list but with processed points removed, can be a nice tool to show how far along
-the path has processed since last time. 
+the path has processed since last time.
 
 ["previous_path_x"] The previous list of x points previously given to the simulator
 
 ["previous_path_y"] The previous list of y points previously given to the simulator
 
-#### Previous path's end s and d values 
+#### Previous path's end s and d values
 
 ["end_path_s"] The previous list's last point's frenet s value
 
@@ -57,7 +57,7 @@ the path has processed since last time.
 
 #### Sensor Fusion Data, a list of all other car's attributes on the same side of the road. (No Noise)
 
-["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates. 
+["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates.
 
 ## Details
 
@@ -87,7 +87,7 @@ A really helpful resource for doing this project and creating smooth trajectorie
   * Run either `install-mac.sh` or `install-ubuntu.sh`.
   * If you install from source, checkout to commit `e94b6e1`, i.e.
     ```
-    git clone https://github.com/uWebSockets/uWebSockets 
+    git clone https://github.com/uWebSockets/uWebSockets
     cd uWebSockets
     git checkout e94b6e1
     ```
@@ -110,36 +110,14 @@ Please (do your best to) stick to [Google's C++ style guide](https://google.gith
 Note: regardless of the changes you make, your project must be buildable using
 cmake and make!
 
+## Reflection
+The base code provided by Udacity was helpful to get started with the project. All the logic is presented in `src/main.cpp` file. A helper file `src/spline.h` is used, which is explained below. The algorithm performs three main tasks Sensing, Planning, and Trajectory Generation in a sequential order. Each of these tasks are explained below.
 
-## Call for IDE Profiles Pull Requests
+#### Sensing
+ The objective is to detect vehicles around the ego vehicles to help with planning in later steps. The simulator provides data of all the vehicles in simulator. The data contains position and speed of vehicles at every instant. It is important to filter this data to consider vehicles that are needed to plan the trajectory. Typically, a gap of 30 m is chosen both in front and back of vehicle. Following this, the lanes of all the vehicles within this range is identified and categorized into `car_ahead`, `car_to_left` and `car_to_right`.
 
-Help your fellow students!
+#### Planning
+The planning module decides the `desired_speed` and `desired_lane` of the vehicle. When the ego vehicle encounters another vehicle in front of it, it has two options. Either to reduce its speed or change lane. Ideally, the ego vehicle tries to change lane without compromising on its speed. The vehicle move to either left or right lane, preferably overtaking from the left lane. In case both the lane have vehicle already occupied, the ego vehicle then tries to reduce its speed complying to max acceleration and max jerk. The maximum acceleration/deceleration is `0.224` considering total acceleration not exceeding `10 m/s^2`. The speed is reduced till it matches with the vehicle ahead of it. In case there are no vehicles ahead and the speed of the vehicle is below the speed limit, the vehicle tries to increase its speed. The change of lane or change in speed is communicated to the Trajectory Generation module.
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+#### Trajectory Generation
+After the Planning module decides the desired lane and speed, a trajectory is generated for the vehicle to follow. The last two points of the previous trajectory  are used in addition to three more points at a far distance to initialize the spline calculation initialized at 30, 60,and 90 m from the current location of the vehicle. The coordinates are transformed  to local car coordinates to fit the spline. The `spline.h` file has in built functions to fit the spline which was really handy.  The trajectory generator works at 50Hz. In order to ensure continuity, the past trajectory points are added to the new waypoints. The remaining waypoints are chosen based on a target distance and the time taken to reach that distance (based on current speed).
